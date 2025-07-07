@@ -16,16 +16,6 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const verifyRegistrationOtp = async (req: Request, res: Response) => {
-  const result = await userService.verifyRegistrationOtp(req.body);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "User Verified successfully!",
-    data: result,
-  });
-};
-
 // get all user form db
 const getUsers = catchAsync(async (req: Request, res: Response) => {
 
@@ -71,7 +61,6 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 
 export const userController = {
   createUser,
-  verifyRegistrationOtp,
   getUsers,
   updateProfile,
   updateUser

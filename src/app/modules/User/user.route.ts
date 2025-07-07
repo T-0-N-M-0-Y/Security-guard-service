@@ -15,8 +15,6 @@ router.post(
   userController.createUser
 );
 
-// Verify user
-router.post("/verify-registration-otp", userController.verifyRegistrationOtp);
 
 // *!get all  user
 router.get("/", userController.getUsers);
