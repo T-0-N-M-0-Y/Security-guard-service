@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  fullName          String
+  email             String     @unique
+  profileImage      String?
+  coverImage        String?
+  expirationOtp     DateTime?
+  otp               Int?
+  password          String
+  isApproved        Boolean    @default(false)
+  isCompleteProfile Boolean    @default(false)
+  role              UserRole   @default(USER)
+  status            UserStatus @default(ACTIVE)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  bookings  Booking[]
+  favorites GuardBookmark[]
+  reviews   Review[]
+  Security  Security?
+
+  @@map("users")
+}
+
+model Security {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @unique @db.ObjectId
+  phoneNumber String
+  address     String
+  govId       String
+  certificate String
+  dob         DateTime
+  about       String
+  rating      Float    @default(0.0)
+  hourlyRate  Float
+  approved    Boolean  @default(false)
+
+  user          User            @relation(fields: [userId], references: [id])
+  bookings      Booking[]
+  reviews       Review[]
+  GuardBookmark GuardBookmark[]
+}
+
+model Booking {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  securityId    String   @db.ObjectId
+  pickup        String
+  dropoff       String
+  appointmentAt DateTime
+  pickupTime    String
+  durationHour  Int
+  status        String   @default("confirmed") // confirmed, on_the_way, arrived, complete, approved
+  totalBill     Float
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  security Security @relation(fields: [securityId], references: [id])
+}
+
+model GuardBookmark {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String @db.ObjectId
+  securityId String @db.ObjectId
+
+  user     User     @relation(fields: [userId], references: [id])
+  security Security @relation(fields: [securityId], references: [id])
+}
+
+model Review {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String @db.ObjectId
+  securityId String @db.ObjectId
+  rating     Int
+  comment    String
+
+  user     User     @relation(fields: [userId], references: [id])
+  security Security @relation(fields: [securityId], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  SECURITY
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
