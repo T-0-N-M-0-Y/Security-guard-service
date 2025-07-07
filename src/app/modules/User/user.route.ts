@@ -15,6 +15,9 @@ router.post(
   userController.createUser
 );
 
+// Verify user
+router.post("/verify-registration-otp", userController.verifyRegistrationOtp);
+
 // *!get all  user
 router.get("/", userController.getUsers);
 
@@ -22,7 +25,7 @@ router.get("/", userController.getUsers);
 router.put(
   "/profile",
   // validateRequest(UserValidation.userUpdateSchema),
-  auth(UserRole.ADMIN, UserRole.USER),
+  auth(UserRole.ADMIN, UserRole.USER, UserRole.SECURITY),
   fileUploader.uploadSingle,
   userController.updateProfile
 );

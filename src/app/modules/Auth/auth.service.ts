@@ -8,6 +8,7 @@ import emailSender from "../../../shared/emailSender";
 import { UserStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import crypto from 'crypto';
+
 // user login
 const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUnique({
@@ -15,7 +16,6 @@ const loginUser = async (payload: { email: string; password: string }) => {
       email: payload.email,
     },
   });
-
   if (!userData?.email) {
     throw new ApiError(
       httpStatus.NOT_FOUND,
@@ -43,7 +43,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
   return { token: accessToken };
 };
 
-// get user profile
+// get all user profile
 const getMyProfile = async (userToken: string) => {
   const decodedToken = jwtHelpers.verifyToken(
     userToken,
@@ -67,7 +67,6 @@ const getMyProfile = async (userToken: string) => {
 };
 
 // change password
-
 const changePassword = async (
   userToken: string,
   newPassword: string,
@@ -77,7 +76,6 @@ const changePassword = async (
     userToken,
     config.jwt.jwt_secret!
   );
-
   const user = await prisma.user.findUnique({
     where: { id: decodedToken?.id },
   });
@@ -85,7 +83,6 @@ const changePassword = async (
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-
 
   const isPasswordValid = await bcrypt.compare(oldPassword, user?.password);
 
@@ -105,6 +102,7 @@ const changePassword = async (
   });
   return { message: "Password changed successfully" };
 };
+
 const forgotPassword = async (payload: { email: string }) => {
   // Fetch user data or throw if not found
   const userData = await prisma.user.findFirstOrThrow({
@@ -151,7 +149,7 @@ const forgotPassword = async (payload: { email: string }) => {
 </div> `;
 
   // Send the OTP email to the user
-  await emailSender( userData.email, html,'Forgot Password OTP',);
+  await emailSender( userData.email, html,'Forgot Password OTP');
 
   // Update the user's OTP and expiration in the database
   await prisma.user.update({

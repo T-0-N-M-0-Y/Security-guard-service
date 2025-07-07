@@ -20,7 +20,6 @@ const createUserIntoDb = async (payload: User) => {
       email: payload.email,
     },
   });
-
   if (existingUser) {
     if (existingUser.email === payload.email) {
       throw new ApiError(
@@ -33,7 +32,6 @@ const createUserIntoDb = async (payload: User) => {
     payload.password,
     Number(config.bcrypt_salt_rounds)
   );
-
   const result = await prisma.user.create({
     data: { ...payload, password: hashedPassword },
     select: {
@@ -55,6 +53,41 @@ const createUserIntoDb = async (payload: User) => {
   );
 
   return { result, token };
+};
+
+//verification email
+const verifyRegistrationOtp = async (payload: {
+  email: string;
+  otp: number;
+}) => {
+  const user = await prisma.user.findUnique({ where: { email: payload.email } });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already verified");
+  }
+
+  if (!user.otp || !user.expirationOtp || user.otp !== payload.otp) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP");
+  }
+
+  if (user.expirationOtp < new Date()) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "OTP expired");
+  }
+
+  await prisma.user.update({
+    where: { email: payload.email },
+    data: {
+      isVerified: true,
+      otp: null,
+      expirationOtp: null,
+    },
+  });
+
+  return { message: "Account verified successfully" };
 };
 
 // reterive all users from the database also searcing anf filetering
@@ -95,11 +128,11 @@ const getUsersFromDb = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
     select: {
       id: true,
       fullName: true,
@@ -208,6 +241,7 @@ const updateUserIntoDb = async (payload: IUser, id: string) => {
 
 export const userService = {
   createUserIntoDb,
+  verifyRegistrationOtp,
   getUsersFromDb,
   updateProfile,
   updateUserIntoDb,
