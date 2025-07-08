@@ -100,7 +100,8 @@ const getUsersFromDb = async (
         },
     select: {
       id: true,
-      fullName: true,
+      firstName: true,
+      lastName: true,
       email: true,
       profileImage: true,
       role: true,
@@ -151,14 +152,16 @@ const updateProfile = async (req: Request) => {
       id: existingUser.id, // Ensure `existingUser.id` is valid and exists
     },
     data: {
-      fullName: parseData.fullName || existingUser.fullName,
+      firstName: parseData.firstName || existingUser.firstName,
+      lastName: parseData.lastName || existingUser.lastName,
       email: parseData.email || existingUser.email,
       profileImage: image || existingUser.profileImage,
       updatedAt: new Date(), // Assuming your model has an `updatedAt` field
     },
     select: {
       id: true,
-      fullName: true,
+      firstName: true,
+      lastName: true,
       email: true,
       profileImage: true,
     },
@@ -184,7 +187,8 @@ const updateUserIntoDb = async (payload: IUser, id: string) => {
     data: payload,
     select: {
       id: true,
-      fullName: true,
+      firstName: true,
+      lastName: true,
       email: true,
       profileImage: true,
       role: true,
