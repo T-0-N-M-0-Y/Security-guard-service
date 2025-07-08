@@ -30,6 +30,13 @@ const loginUser = async (payload: { email: string; password: string }) => {
       'Please verify your email to login.'
     );
   }
+
+  
+  if (userData.role === 'SECURITY') {
+    const profile = await prisma.securityProfile.findUnique({ where: { userId: userData.id } });
+    if (!profile?.approved) throw new Error('Security profile not approved by admin');
+  }
+
   const isCorrectPassword: boolean = await bcrypt.compare(
     payload.password,
     userData.password

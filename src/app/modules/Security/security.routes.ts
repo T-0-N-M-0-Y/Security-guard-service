@@ -1,29 +1,10 @@
 import express from 'express';
-import auth from '../../middlewares/auth';
-import validateRequest from '../../middlewares/validateRequest';
-import { securityController } from './security.controller';
-import { securityValidation } from './security.validation';
+import { SecurityController } from './security.controller';
+import { fileUploader } from '../../../helpars/fileUploader';
+
 
 const router = express.Router();
 
-router.post(
-'/',
-auth(),
-validateRequest(securityValidation.createSchema),
-securityController.createSecurity,
-);
+router.post('/submit-verification', fileUploader.uploadSingle, SecurityController.submitVerification);
 
-router.get('/', auth(), securityController.getSecurityList);
-
-router.get('/:id', auth(), securityController.getSecurityById);
-
-router.put(
-'/:id',
-auth(),
-validateRequest(securityValidation.updateSchema),
-securityController.updateSecurity,
-);
-
-router.delete('/:id', auth(), securityController.deleteSecurity);
-
-export const securityRoutes = router;
+export const SecurityRoutes = router;

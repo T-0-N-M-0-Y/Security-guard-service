@@ -26,30 +26,30 @@ model User {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  bookings  Booking[]
-  favorites GuardBookmark[]
-  reviews   Review[]
-  Security  Security?
-  messages  Message[]
+  bookings        Booking[]
+  favorites       GuardBookmark[]
+  reviews         Review[]
+  SecurityProfile SecurityProfile?
+  messages        Message[]
 
   @@map("users")
 }
 
-model Security {
-  id              String         @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String         @unique @db.ObjectId
-  phoneNumber     String
-  address         String
-  govId           String
-  certificate     String
-  dob             DateTime
-  about           String
-  rating          Float          @default(0.0)
-  hourlyRate      Float
-  status          SecurityStatus @default(PENDING)
-  approved        Boolean        @default(false)
-  isVerified      Boolean        @default(false)
-  stripeAccountId String?
+model SecurityProfile {
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String                @unique @db.ObjectId
+  phoneNumber         String
+  address             String
+  govtId              String
+  securityCertificate String
+  dateOfBirth         DateTime
+  about               String
+  rating              Float                 @default(0.0)
+  hourlyRate          Float
+  status              SecurityProfileStatus @default(PENDING)
+  approved            Boolean               @default(false)
+  isVerified          Boolean               @default(false)
+  stripeAccountId     String?
 
   user          User            @relation(fields: [userId], references: [id])
   bookings      Booking[]
@@ -59,45 +59,45 @@ model Security {
 }
 
 model Booking {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String        @db.ObjectId
-  securityId    String        @db.ObjectId
-  pickup        String
-  dropoff       String
-  appointmentAt DateTime
-  pickupTime    String
-  serviceHours  Int
-  ratePerHour   Int
-  status        BookingStatus @default(PENDING)
-  totalBill     Float
-  createdAt     DateTime      @default(now())
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String        @db.ObjectId
+  SecurityProfileId String        @db.ObjectId
+  pickup            String
+  dropoff           String
+  appointmentAt     DateTime
+  pickupTime        String
+  serviceHours      Int
+  ratePerHour       Int
+  status            BookingStatus @default(PENDING)
+  totalBill         Float
+  createdAt         DateTime      @default(now())
 
-  user     User     @relation(fields: [userId], references: [id])
-  security Security @relation(fields: [securityId], references: [id])
-  review   Review?  @relation(fields: [reviewId], references: [id])
-  reviewId String?  @db.ObjectId
+  user            User            @relation(fields: [userId], references: [id])
+  SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
+  review          Review?         @relation(fields: [reviewId], references: [id])
+  reviewId        String?         @db.ObjectId
 }
 
 model GuardBookmark {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String @db.ObjectId
-  securityId String @db.ObjectId
+  id                String @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String @db.ObjectId
+  SecurityProfileId String @db.ObjectId
 
-  user     User     @relation(fields: [userId], references: [id])
-  security Security @relation(fields: [securityId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
 }
 
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  securityId String   @db.ObjectId
-  rating     Int
-  comment    String
-  createdAt  DateTime @default(now())
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  SecurityProfileId String   @db.ObjectId
+  rating            Int
+  comment           String
+  createdAt         DateTime @default(now())
 
-  user     User      @relation(fields: [userId], references: [id])
-  security Security  @relation(fields: [securityId], references: [id])
-  Booking  Booking[]
+  user            User            @relation(fields: [userId], references: [id])
+  SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
+  Booking         Booking[]
 }
 
 model Message {
@@ -107,10 +107,10 @@ model Message {
   content    String
   createdAt  DateTime @default(now())
 
-  User       User?     @relation(fields: [userId], references: [id])
-  userId     String?   @db.ObjectId
-  Security   Security? @relation(fields: [securityId], references: [id])
-  securityId String?   @db.ObjectId
+  User              User?            @relation(fields: [userId], references: [id])
+  userId            String?          @db.ObjectId
+  SecurityProfile   SecurityProfile? @relation(fields: [SecurityProfileId], references: [id])
+  SecurityProfileId String?          @db.ObjectId
 }
 
 enum UserRole {
@@ -125,7 +125,7 @@ enum UserStatus {
   BLOCKED
 }
 
-enum SecurityStatus {
+enum SecurityProfileStatus {
   PENDING
   APPROVED
   REJECTED

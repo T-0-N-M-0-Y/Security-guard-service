@@ -1,65 +1,48 @@
-import prisma from '../../utils/prisma';
-import { UserRoleEnum, UserStatus } from '@prisma/client';
-import AppError from '../../errors/AppError';
-import httpStatus from 'http-status';
+import { Request } from "express";
+import prisma from "../../../shared/prisma";
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiErrors";
+import { fileUploader } from "../../../helpars/fileUploader";
 
+export const SecurityService = {
+  submitVerification: async (req: Request) => {
+    const user = req.user as { id: string }; // assuming attached by auth middleware
+    const payload = req.body;
+    const file = req.file as Express.Multer.File; // assuming single file upload
 
-const createIntoDb = async (data: any) => {
-  const transaction = await prisma.$transaction(async (prisma) => {
-    const result = await prisma.security.create({ data });
-    return result;
-  });
-
-  return transaction;
-};
-
-const getListFromDb = async () => {
-  
-    const result = await prisma.security.findMany();
-    return result;
-};
-
-const getByIdFromDb = async (id: string) => {
-  
-    const result = await prisma.security.findUnique({ where: { id } });
-    if (!result) {
-      throw new Error('Security not found');
+    // Validate
+    if (!file) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Certificate file is required");
     }
-    return result;
-  };
 
+    const existing = await prisma.securityProfile.findUnique({ where: { userId: user.id } });
+    if (existing) throw new ApiError(httpStatus.BAD_REQUEST, "Verification already submitted");
 
+    const existingUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!existingUser || existingUser.role !== "SECURITY") {
+      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid security user");
+    }
 
-const updateIntoDb = async (id: string, data: any) => {
-  const transaction = await prisma.$transaction(async (prisma) => {
-    const result = await prisma.security.update({
-      where: { id },
-      data,
-    });
-    return result;
-  });
+    // Upload certificate to DigitalOcean
+    const uploaded = await fileUploader.uploadToDigitalOcean(file); // returns { Location: string }
 
-  return transaction;
-};
+    // Create the security profile
+    const data = {
+      userId: user.id,
+      phoneNumber: payload.phoneNumber,
+      address: payload.permanentAddress,
+      govtId: payload.govtId,
+      securityCertificate: uploaded.Location,
+      dateOfBirth: new Date(payload.dateOfBirth),
+      about: payload.about,
+      hourlyRate: Number(payload.hourlyRate),
+    };
 
-const deleteItemFromDb = async (id: string) => {
-  const transaction = await prisma.$transaction(async (prisma) => {
-    const deletedItem = await prisma.security.delete({
-      where: { id },
-    });
+    const profile = await prisma.securityProfile.create({ data });
 
-    // Add any additional logic if necessary, e.g., cascading deletes
-    return deletedItem;
-  });
-
-  return transaction;
-};
-;
-
-export const securityService = {
-createIntoDb,
-getListFromDb,
-getByIdFromDb,
-updateIntoDb,
-deleteItemFromDb,
+    return {
+      message: "Security verification submitted successfully.",
+      data: profile,
+    };
+  },
 };
