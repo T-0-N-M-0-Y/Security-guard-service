@@ -29,44 +29,52 @@ model User {
   favorites GuardBookmark[]
   reviews   Review[]
   Security  Security?
+  messages  Message[]
 
   @@map("users")
 }
 
 model Security {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @unique @db.ObjectId
-  phoneNumber String
-  address     String
-  govId       String
-  certificate String
-  dob         DateTime
-  about       String
-  rating      Float    @default(0.0)
-  hourlyRate  Float
-  approved    Boolean  @default(false)
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String         @unique @db.ObjectId
+  phoneNumber     String
+  address         String
+  govId           String
+  certificate     String
+  dob             DateTime
+  about           String
+  rating          Float          @default(0.0)
+  hourlyRate      Float
+  status          SecurityStatus @default(PENDING)
+  approved        Boolean        @default(false)
+  isVerified      Boolean        @default(false)
+  stripeAccountId String?
 
   user          User            @relation(fields: [userId], references: [id])
   bookings      Booking[]
   reviews       Review[]
   GuardBookmark GuardBookmark[]
+  messages      Message[]
 }
 
 model Booking {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @db.ObjectId
-  securityId    String   @db.ObjectId
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String        @db.ObjectId
+  securityId    String        @db.ObjectId
   pickup        String
   dropoff       String
   appointmentAt DateTime
   pickupTime    String
-  durationHour  Int
-  status        String   @default("confirmed") // confirmed, on_the_way, arrived, complete, approved
+  serviceHours  Int
+  ratePerHour   Int
+  status        BookingStatus @default(PENDING)
   totalBill     Float
-  createdAt     DateTime @default(now())
+  createdAt     DateTime      @default(now())
 
   user     User     @relation(fields: [userId], references: [id])
   security Security @relation(fields: [securityId], references: [id])
+  review   Review?  @relation(fields: [reviewId], references: [id])
+  reviewId String?  @db.ObjectId
 }
 
 model GuardBookmark {
@@ -79,26 +87,53 @@ model GuardBookmark {
 }
 
 model Review {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String @db.ObjectId
-  securityId String @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  securityId String   @db.ObjectId
   rating     Int
   comment    String
+  createdAt  DateTime @default(now())
 
-  user     User     @relation(fields: [userId], references: [id])
-  security Security @relation(fields: [securityId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  security Security  @relation(fields: [securityId], references: [id])
+  Booking  Booking[]
+}
+
+model Message {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+
+  User       User?     @relation(fields: [userId], references: [id])
+  userId     String?   @db.ObjectId
+  Security   Security? @relation(fields: [securityId], references: [id])
+  securityId String?   @db.ObjectId
 }
 
 enum UserRole {
-  ADMIN
   USER
   SECURITY
+  ADMIN
 }
 
 enum UserStatus {
   PENDING
-  VERIFIED
-  APPROVED
   ACTIVE
   BLOCKED
+}
+
+enum SecurityStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  ON_THE_WAY
+  ARRIVED
+  COMPLETED
+  APPROVED
 }

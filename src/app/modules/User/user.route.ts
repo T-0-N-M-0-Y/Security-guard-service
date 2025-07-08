@@ -16,7 +16,7 @@ router.post(
 );
 
 // *!get all  user
-router.get("/", userController.getUsers);
+router.get("/", auth(UserRole.ADMIN), userController.getUsers);
 
 // *!profile user
 router.put(
