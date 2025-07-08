@@ -12,8 +12,6 @@ import { Request } from "express";
 import { fileUploader } from "../../../helpars/fileUploader";
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
-import emailSender from "../../../shared/emailSender";
-import crypto from 'crypto';
 
 // Create a new user in the database.
 const createUserIntoDb = async (payload: User) => {
@@ -34,16 +32,8 @@ const createUserIntoDb = async (payload: User) => {
     payload.password,
     Number(config.bcrypt_salt_rounds)
   );
-
-  const otp = Number(crypto.randomInt(1000, 9999));
-  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
   const result = await prisma.user.create({
-    data: {
-      ...payload, password: hashedPassword,
-      otp,
-      expirationOtp,
-    },
+    data: { ...payload, password: hashedPassword },
     select: {
       id: true,
       email: true,
@@ -52,15 +42,6 @@ const createUserIntoDb = async (payload: User) => {
       updatedAt: true,
     },
   });
-
-  const html = `
-    <h2>Please check your email. Give correct authentication code here</h2>
-    <p>Your OTP is: <strong>${otp}</strong></p>
-    <p>This OTP is valid for 10 minutes.</p>
-  `;
-
-  await emailSender(result.email, html, 'Email Verification');
-
   const token = jwtHelpers.generateToken(
     {
       id: result.id,
@@ -144,7 +125,7 @@ const getUsersFromDb = async (
   };
 };
 
-// update profile by user won profile uisng token or email and id
+// update profile by user own profile uisng token or email and id
 const updateProfile = async (req: Request) => {
   console.log(req.file, req.body.data);
   const file = req.file;
@@ -186,7 +167,7 @@ const updateProfile = async (req: Request) => {
   return result;
 };
 
-// update user data into database by id fir admin
+// update user data into database by id first admin
 const updateUserIntoDb = async (payload: IUser, id: string) => {
   const userInfo = await prisma.user.findUniqueOrThrow({
     where: {
@@ -228,5 +209,4 @@ export const userService = {
   getUsersFromDb,
   updateProfile,
   updateUserIntoDb,
-
 };

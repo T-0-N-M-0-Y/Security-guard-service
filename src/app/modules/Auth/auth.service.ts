@@ -9,58 +9,6 @@ import { UserStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import crypto from 'crypto';
 
-// Verify user via verification code
-const verifyEmailOtp = async (payload: { email: string; otp: number }) => {
-  const user = await prisma.user.findUnique({
-    where: { email: payload.email },
-  });
-
-  if (!user) throw new ApiError(404, 'User not found');
-  if (user.emailVerified) throw new ApiError(400, 'Email already verified');
-
-  if (
-    user.otp !== payload.otp ||
-    !user.expirationOtp ||
-    user.expirationOtp < new Date()
-  ) {
-    throw new ApiError(400, 'Invalid or expired OTP');
-  }
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      otp: null,
-      expirationOtp: null,
-      emailVerified: true,
-      status: 'ACTIVE',
-    },
-  });
-  return { message: 'Email verified successfully' };
-};
-
-//Resend verification code
-const resendVerificationOtp = async (email: string) => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new ApiError(404, 'User not found');
-  if (user.emailVerified) throw new ApiError(400, 'Email already verified');
-
-  const otp = Number(crypto.randomInt(1000, 9999));
-  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000);
-
-  const html = `
-    <h2>Resend Verification Code</h2>
-    <p>Your new OTP: <strong>${otp}</strong></p>
-  `;
-  await emailSender(user.email, html, 'Resend Email Verification');
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      otp,
-      expirationOtp,
-    },
-  });
-  return { message: 'Verification OTP resent to your email' };
-};
-
 // user login
 const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUnique({
@@ -74,6 +22,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
       "User not found! with this email " + payload.email
     );
   }
+
   //verify your email
   if (!userData.emailVerified) {
     throw new ApiError(
@@ -108,7 +57,6 @@ const getMyProfile = async (userToken: string) => {
     userToken,
     config.jwt.jwt_secret!
   );
-
   const userProfile = await prisma.user.findUnique({
     where: {
       id: decodedToken.id,
@@ -123,6 +71,121 @@ const getMyProfile = async (userToken: string) => {
   });
 
   return userProfile;
+};
+
+// Verify user via verification code
+const sendVerificationCode = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.emailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already verified');
+  }
+
+  const otp = Number(crypto.randomInt(1000, 9999));
+  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+  const html = `
+  <div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
+      <h2 style="color: #3f51b5; font-size: 24px; text-align: center;">Verification Code</h2>
+      <p style="font-size: 16px; text-align: center;">Use the OTP below:</p>
+      <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center;">${otp}</p>
+      <p style="font-size: 14px; text-align: center; color: #777;">This OTP is valid for 10 minutes.</p>
+    </div>
+  </div>`;
+
+  await emailSender(user.email, html, 'Email Verification OTP');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      otp,
+      expirationOtp,
+    },
+  });
+
+  return { message: 'Please Check your email. Give correct authentication Code here' };
+};
+
+// Resend verification code
+const resendVerificationCode = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.emailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already verified');
+  }
+
+  const otp = Number(crypto.randomInt(1000, 9999));
+  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000);
+
+  const html = `
+  <div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
+      <h2 style="color: #3f51b5; font-size: 24px; text-align: center;">Resend Verification Code</h2>
+      <p style="font-size: 16px; text-align: center;">Here is your new OTP code:</p>
+      <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center;">${otp}</p>
+      <p style="font-size: 14px; text-align: center; color: #777;">This OTP will expire in 10 minutes.</p>
+    </div>
+  </div>`;
+
+  await emailSender(user.email, html, 'Resend Verification OTP');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      otp,
+      expirationOtp,
+    },
+  });
+
+  return { message: 'Verification OTP resent to your email.' };
+};
+
+// Verify verification code
+const verifyEmailOtp = async (payload: { email: string; otp: number }) => {
+  const user = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.emailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already verified');
+  }
+
+  if (
+    user.otp !== payload.otp ||
+    !user.expirationOtp ||
+    user.expirationOtp < new Date()
+  ) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid or expired OTP');
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      emailVerified: true,
+      status: 'ACTIVE',
+      otp: null,
+      expirationOtp: null,
+    },
+  });
+
+  return { message: 'Email verified successfully' };
 };
 
 // change password
@@ -162,6 +225,7 @@ const changePassword = async (
   return { message: "Password changed successfully" };
 };
 
+// Forget password
 const forgotPassword = async (payload: { email: string }) => {
   // Fetch user data or throw if not found
   const userData = await prisma.user.findFirstOrThrow({
@@ -221,8 +285,6 @@ const forgotPassword = async (payload: { email: string }) => {
 
   return { message: 'Reset password OTP sent to your email successfully' };
 };
-
-
 
 const resendOtp = async (email: string) => {
   // Check if the user exists
@@ -286,6 +348,7 @@ const resendOtp = async (email: string) => {
 
   return { message: 'OTP resent successfully' };
 };
+
 const verifyForgotPasswordOtp = async (payload: {
   email: string;
   otp: number;
@@ -298,7 +361,6 @@ const verifyForgotPasswordOtp = async (payload: {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'This user is not found!');
   }
-
 
   // Check if the OTP is valid and not expired
   if (
@@ -348,14 +410,16 @@ const resetPassword = async (payload: { password: string; email: string }) => {
 
   return { message: 'Password reset successfully' };
 };
+
 export const AuthServices = {
+  sendVerificationCode,
+  resendVerificationCode,
+  verifyEmailOtp,
   loginUser,
   getMyProfile,
   changePassword,
   forgotPassword,
+  verifyForgotPasswordOtp,
   resetPassword,
   resendOtp,
-  verifyForgotPasswordOtp,
-  verifyEmailOtp,
-  resendVerificationOtp
 };
