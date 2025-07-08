@@ -9,6 +9,58 @@ import { UserStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import crypto from 'crypto';
 
+// Verify user via verification code
+const verifyEmailOtp = async (payload: { email: string; otp: number }) => {
+  const user = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (!user) throw new ApiError(404, 'User not found');
+  if (user.emailVerified) throw new ApiError(400, 'Email already verified');
+
+  if (
+    user.otp !== payload.otp ||
+    !user.expirationOtp ||
+    user.expirationOtp < new Date()
+  ) {
+    throw new ApiError(400, 'Invalid or expired OTP');
+  }
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      otp: null,
+      expirationOtp: null,
+      emailVerified: true,
+      status: 'ACTIVE',
+    },
+  });
+  return { message: 'Email verified successfully' };
+};
+
+//Resend verification code
+const resendVerificationOtp = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new ApiError(404, 'User not found');
+  if (user.emailVerified) throw new ApiError(400, 'Email already verified');
+
+  const otp = Number(crypto.randomInt(1000, 9999));
+  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000);
+
+  const html = `
+    <h2>Resend Verification Code</h2>
+    <p>Your new OTP: <strong>${otp}</strong></p>
+  `;
+  await emailSender(user.email, html, 'Resend Email Verification');
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      otp,
+      expirationOtp,
+    },
+  });
+  return { message: 'Verification OTP resent to your email' };
+};
+
 // user login
 const loginUser = async (payload: { email: string; password: string }) => {
   const userData = await prisma.user.findUnique({
@@ -20,6 +72,13 @@ const loginUser = async (payload: { email: string; password: string }) => {
     throw new ApiError(
       httpStatus.NOT_FOUND,
       "User not found! with this email " + payload.email
+    );
+  }
+  //verify your email
+  if (!userData.emailVerified) {
+    throw new ApiError(
+      httpStatus.UNAUTHORIZED,
+      'Please verify your email to login.'
     );
   }
   const isCorrectPassword: boolean = await bcrypt.compare(
@@ -149,7 +208,7 @@ const forgotPassword = async (payload: { email: string }) => {
 </div> `;
 
   // Send the OTP email to the user
-  await emailSender( userData.email, html,'Forgot Password OTP');
+  await emailSender(userData.email, html, 'Forgot Password OTP');
 
   // Update the user's OTP and expiration in the database
   await prisma.user.update({
@@ -225,7 +284,7 @@ const resendOtp = async (email: string) => {
     },
   });
 
-  return { message: 'OTP resent successfully'};
+  return { message: 'OTP resent successfully' };
 };
 const verifyForgotPasswordOtp = async (payload: {
   email: string;
@@ -296,5 +355,7 @@ export const AuthServices = {
   forgotPassword,
   resetPassword,
   resendOtp,
-  verifyForgotPasswordOtp
+  verifyForgotPasswordOtp,
+  verifyEmailOtp,
+  resendVerificationOtp
 };

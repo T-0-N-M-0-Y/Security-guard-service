@@ -8,6 +8,10 @@ import { authValidation } from "./auth.validation";
 
 const router = express.Router();
 
+router.post('/verify-email', AuthController.verifyEmailOtp);
+
+router.post('/resend-verification', AuthController.resendVerificationOtp);
+
 // user login route
 router.post(
   "/login",
@@ -18,13 +22,14 @@ router.post(
 // user logout route
 router.post("/logout", AuthController.logoutUser);
 
-
+//Get Profile
 router.get(
   "/profile",
   auth(UserRole.ADMIN, UserRole.USER, UserRole.SECURITY),
   AuthController.getMyProfile
 );
 
+//Change Password
 router.put(
   "/change-password",
   auth(),

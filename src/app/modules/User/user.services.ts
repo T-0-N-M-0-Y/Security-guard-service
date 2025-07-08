@@ -12,6 +12,8 @@ import { Request } from "express";
 import { fileUploader } from "../../../helpars/fileUploader";
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
+import emailSender from "../../../shared/emailSender";
+import crypto from 'crypto';
 
 // Create a new user in the database.
 const createUserIntoDb = async (payload: User) => {
@@ -32,8 +34,16 @@ const createUserIntoDb = async (payload: User) => {
     payload.password,
     Number(config.bcrypt_salt_rounds)
   );
+
+  const otp = Number(crypto.randomInt(1000, 9999));
+  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
   const result = await prisma.user.create({
-    data: { ...payload, password: hashedPassword },
+    data: {
+      ...payload, password: hashedPassword,
+      otp,
+      expirationOtp,
+    },
     select: {
       id: true,
       email: true,
@@ -42,6 +52,15 @@ const createUserIntoDb = async (payload: User) => {
       updatedAt: true,
     },
   });
+
+  const html = `
+    <h2>Please check your email. Give correct authentication code here</h2>
+    <p>Your OTP is: <strong>${otp}</strong></p>
+    <p>This OTP is valid for 10 minutes.</p>
+  `;
+
+  await emailSender(result.email, html, 'Email Verification');
+
   const token = jwtHelpers.generateToken(
     {
       id: result.id,

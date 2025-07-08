@@ -16,11 +16,11 @@ model User {
   expirationOtp     DateTime?
   otp               Int?
   password          String
-  isVerified        Boolean    @default(false)
+  emailVerified     Boolean    @default(false)
   isApproved        Boolean    @default(false)
   isCompleteProfile Boolean    @default(false)
   role              UserRole   @default(USER)
-  status            UserStatus @default(ACTIVE)
+  status            UserStatus @default(PENDING)
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -95,7 +95,9 @@ enum UserRole {
 }
 
 enum UserStatus {
+  PENDING
+  VERIFIED
+  APPROVED
   ACTIVE
-  INACTIVE
   BLOCKED
 }
