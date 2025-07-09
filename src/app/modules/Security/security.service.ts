@@ -6,9 +6,9 @@ import { fileUploader } from "../../../helpars/fileUploader";
 
 
 const submitVerification = async (req: Request) => {
-  const userId = req.user.id // assuming attached by auth middleware
+  const userId = req.user.id;
   const payload = req.body.data;
-  const file = req.file // assuming single file upload
+  const file = req.file;
   console.log("File:", file);
   let uploaded;
   let parseData;
@@ -16,8 +16,6 @@ const submitVerification = async (req: Request) => {
 if(payload) {
     parseData = JSON.parse(payload);
   }
-
-  console.log("Parsed Data:", parseData);
 
   const existingUser = await prisma.user.findUnique({ where: { id: userId } });
   if (!existingUser ) {
@@ -32,7 +30,6 @@ if(payload) {
  if (file) {
    const res = await fileUploader.uploadToDigitalOcean(file)
    uploaded = res.Location
-   console.log("Uploaded Certificate URL:", uploaded);
  }
   // Create the security profile
   const data = {
