@@ -1,8 +1,8 @@
 import express from 'express';
 import { fileUploader } from '../../../helpars/fileUploader';
-import { SecurityController } from './Security.controller';
 import auth from '../../middlewares/auth';
 import { UserRole } from '@prisma/client';
+import { SecurityController } from './security.controller';
 
 
 
