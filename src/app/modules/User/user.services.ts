@@ -64,7 +64,7 @@ const createUserIntoDb = async (payload: IUser) => {
   return { result, message: "An OTP has been sent to your email. Please verify your account." };
 };
 
-// reterive all users from the database also searcing anf filetering
+// reterive all users from the database also searcing and filetering
 const getUsersFromDb = async (
   params: IUserFilterRequest,
   options: IPaginationOptions

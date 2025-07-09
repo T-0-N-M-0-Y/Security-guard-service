@@ -9,11 +9,9 @@ import { authValidation } from "./auth.validation";
 const router = express.Router();
 
 //Verification code routes
-router.post('/send-verification', AuthController.sendVerificationOtp);
+router.post('/verify-email', AuthController.verifyEmailOtp);
 
 router.post('/resend-verification', AuthController.resendVerificationOtp);
-
-router.post('/verify-email', AuthController.verifyEmailOtp);
 
 // user login route
 router.post(

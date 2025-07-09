@@ -9,7 +9,6 @@ const submitVerification = async (req: Request) => {
   const userId = req.user.id;
   const payload = req.body.data;
   const file = req.file;
-  console.log("File:", file);
   let uploaded;
   let parseData;
 

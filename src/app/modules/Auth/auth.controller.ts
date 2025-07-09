@@ -3,18 +3,6 @@ import catchAsync from "../../../shared/catchAsync";
 import { AuthServices } from "./auth.service";
 import sendResponse from "../../../shared/sendResponse";
 import httpStatus from "http-status";
-import { string } from "zod";
-
-
-const sendVerificationOtp = catchAsync(async (req, res) => {
-  const result = await AuthServices.sendVerificationCode(req.body.email);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Verification code resent successfully",
-    data: result,
-  });
-});
 
 const resendVerificationOtp = catchAsync(async (req, res) => {
   const result = await AuthServices.resendVerificationCode(req.body.email);
@@ -137,7 +125,6 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 
 export const AuthController = {
-  sendVerificationOtp,
   resendVerificationOtp,
   verifyEmailOtp,
   loginUser,

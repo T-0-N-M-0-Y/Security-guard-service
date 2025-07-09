@@ -45,7 +45,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
   if (!isCorrectPassword) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Password incorrect!");
   }
-  
+
   const accessToken = jwtHelpers.generateToken(
     {
       id: userData.id,
@@ -57,46 +57,6 @@ const loginUser = async (payload: { email: string; password: string }) => {
   );
 
   return { token: accessToken };
-};
-
-// Verify user via verification code
-const sendVerificationCode = async (email: string) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-
-  if (user.emailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already verified');
-  }
-
-  const otp = Number(crypto.randomInt(1000, 9999));
-  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-  const html = `
-  <div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
-      <h2 style="color: #3f51b5; font-size: 24px; text-align: center;">Verification Code</h2>
-      <p style="font-size: 16px; text-align: center;">Use the OTP below:</p>
-      <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center;">${otp}</p>
-      <p style="font-size: 14px; text-align: center; color: #777;">This OTP is valid for 10 minutes.</p>
-    </div>
-  </div>`;
-
-  await emailSender(user.email, html, 'Email Verification OTP');
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      otp,
-      expirationOtp,
-    },
-  });
-
-  return { message: 'Please Check your email. Give correct authentication Code here' };
 };
 
 // Resend verification code
@@ -365,7 +325,6 @@ const resetPassword = async (payload: { password: string; email: string }) => {
 };
 
 export const AuthServices = {
-  sendVerificationCode,
   resendVerificationCode,
   verifyEmailOtp,
   loginUser,
