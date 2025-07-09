@@ -46,6 +46,39 @@ const submitVerification = async (req: Request) => {
   };
 }
 
+const getAllSecurityProfiles = async () => {
+  return prisma.securityProfile.findMany({
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          emailVerified: true,
+        },
+      },
+    },
+  });
+}
+
+const getSingleSecurityProfile = async (id: string) => {
+  return prisma.securityProfile.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          emailVerified: true,
+        },
+      },
+    },
+  });
+};
+
 export const SecurityService = {
-  submitVerification
+  submitVerification,
+  getAllSecurityProfiles,
+  getSingleSecurityProfile
 };

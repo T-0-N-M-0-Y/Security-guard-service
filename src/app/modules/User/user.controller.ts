@@ -18,10 +18,8 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 
 // get all user form db
 const getUsers = catchAsync(async (req: Request, res: Response) => {
-
   const filters = pick(req.query, userFilterableFields);
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
-
   const result = await userService.getUsersFromDb(filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -32,10 +30,9 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-// get all user form db
+// Update all user form db
 const updateProfile = catchAsync(async (req: Request & { user?: any }, res: Response) => {
   const user = req?.user;
-
   const result = await userService.updateProfile(req);
   sendResponse(res, {
     statusCode: httpStatus.OK,
