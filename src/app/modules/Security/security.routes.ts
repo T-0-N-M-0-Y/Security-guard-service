@@ -1,6 +1,7 @@
 import express from 'express';
-import { SecurityController } from './security.controller';
 import { fileUploader } from '../../../helpars/fileUploader';
+import { SecurityController } from './Security.controller';
+
 
 
 const router = express.Router();

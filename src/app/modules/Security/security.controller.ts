@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { SecurityService } from './security.service';
 import sendResponse from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
+import { SecurityService } from './Security.service';
 
 const submitVerification = async (req: Request, res: Response) => {
   const result = await SecurityService.submitVerification(req);
