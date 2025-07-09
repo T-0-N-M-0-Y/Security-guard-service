@@ -70,7 +70,7 @@ model Booking {
   appointmentAt     DateTime
   pickupTime        String
   serviceHours      Int
-  status            BookingStatus @default(PENDING)
+  status            BookingStatus @default(CONFIRMED)
   totalBill         Float
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -139,9 +139,8 @@ enum SecurityProfileStatus {
 }
 
 enum BookingStatus {
-  PENDING
+  CONFIRMED
   ON_THE_WAY
   ARRIVED
   COMPLETED
-  APPROVED
 }
