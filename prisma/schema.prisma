@@ -26,11 +26,11 @@ model User {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  bookings        Booking[]
-  reviews         Review[]
   SecurityProfile SecurityProfile?
-  messages        Message[]
+  bookings        Booking[]
   GuardBookmark   GuardBookmark[]
+  messages        Message[]
+  reviews         Review[]
 
   @@map("users")
 }
@@ -46,10 +46,13 @@ model SecurityProfile {
   about               String
   rating              Float                 @default(0.0)
   hourlyRate          Float
+  partTimeOrFullTime  String
   status              SecurityProfileStatus @default(PENDING)
   approved            Boolean               @default(false)
   isVerified          Boolean               @default(false)
   stripeAccountId     String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   user          User            @relation(fields: [userId], references: [id])
   bookings      Booking[]
@@ -71,6 +74,7 @@ model Booking {
   status            BookingStatus @default(PENDING)
   totalBill         Float
   createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   user            User            @relation(fields: [userId], references: [id])
   SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
@@ -79,9 +83,11 @@ model Booking {
 }
 
 model GuardBookmark {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String @db.ObjectId
-  securityId String @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  securityId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user     User            @relation(fields: [userId], references: [id])
   security SecurityProfile @relation(fields: [securityId], references: [id])
@@ -94,6 +100,7 @@ model Review {
   rating            Int
   comment           String
   createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user            User            @relation(fields: [userId], references: [id])
   SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
@@ -106,6 +113,7 @@ model Message {
   receiverId String
   content    String
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   User              User?            @relation(fields: [userId], references: [id])
   userId            String?          @db.ObjectId

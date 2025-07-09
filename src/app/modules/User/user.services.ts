@@ -94,6 +94,7 @@ const getUsersFromDb = async (
       })),
     });
   }
+  
   const whereConditons: Prisma.UserWhereInput = { AND: andCondions };
 
   const result = await prisma.user.findMany({

@@ -10,7 +10,7 @@ const approveSecurity = async (userId: string) => {
 
   return prisma.securityProfile.update({
     where: { userId: existingUser.id },
-    data: { approved: true, status: 'APPROVED' },
+    data: { approved: true, status: 'APPROVED', isVerified: true },
   });
 }
 

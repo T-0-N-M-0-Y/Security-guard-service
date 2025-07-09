@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import sendResponse from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
 import { SecurityService } from './security.service';
+import pick from '../../../shared/pick';
+import { userFilterableFields } from '../User/user.costant';
 
 const submitVerification = async (req: Request, res: Response) => {
   const result = await SecurityService.submitVerification(req);
@@ -14,7 +16,9 @@ const submitVerification = async (req: Request, res: Response) => {
 }
 
 const getAllSecurityProfiles = async (req: Request, res: Response) => {
-  const result = await SecurityService.getAllSecurityProfiles();
+  const filters = pick(req.query, userFilterableFields);
+  const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
+  const result = await SecurityService.getAllSecurityProfiles(filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -24,7 +28,7 @@ const getAllSecurityProfiles = async (req: Request, res: Response) => {
 }
 
 const getSingleSecurityProfile = async (req: Request, res: Response) => {
-  const {id} = req.params;
+  const { id } = req.params;
   const result = await SecurityService.getSingleSecurityProfile(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,

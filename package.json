@@ -25,14 +25,14 @@
     "@types/nodemailer": "^6.4.15",
     "@types/streamifier": "^0.1.2",
     "@types/uuid": "^10.0.0",
-    "prisma": "^5.22.0",
+    "prisma": "^6.11.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.3"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.717.0",
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^6.11.1",
     "@types/jsonwebtoken": "^9.0.6",
     "aws": "^0.0.3-2",
     "aws-sdk": "^2.1692.0",
