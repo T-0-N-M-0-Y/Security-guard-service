@@ -94,7 +94,7 @@ const getUsersFromDb = async (
       })),
     });
   }
-  
+
   const whereConditons: Prisma.UserWhereInput = { AND: andCondions };
 
   const result = await prisma.user.findMany({
@@ -166,7 +166,7 @@ const updateProfile = async (req: Request) => {
       lastName: parseData.lastName || existingUser.lastName,
       email: parseData.email || existingUser.email,
       profileImage: image || existingUser.profileImage,
-      updatedAt: new Date(), // Assuming your model has an `updatedAt` field
+      updatedAt: new Date(),
     },
     select: {
       id: true,
@@ -180,7 +180,7 @@ const updateProfile = async (req: Request) => {
   return result;
 };
 
-// update user data into database by id first admin
+// update user data into database by id -> Only Admin can do it
 const updateUserIntoDb = async (payload: IUser, id: string) => {
   const userInfo = await prisma.user.findUniqueOrThrow({
     where: {
