@@ -12,14 +12,18 @@ import { Request } from "express";
 import { fileUploader } from "../../../helpars/fileUploader";
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
+import emailSender from "../../../shared/emailSender";
+import crypto from 'crypto';
+import { generateOtpEmail } from "../../../shared/emailHTML";
 
 // Create a new user in the database.
-const createUserIntoDb = async (payload: User) => {
+const createUserIntoDb = async (payload: IUser) => {
   const existingUser = await prisma.user.findFirst({
     where: {
       email: payload.email,
     },
   });
+
   if (existingUser) {
     if (existingUser.email === payload.email) {
       throw new ApiError(
@@ -28,12 +32,24 @@ const createUserIntoDb = async (payload: User) => {
       );
     }
   }
+  const otp = Number(crypto.randomInt(1000, 9999));
+  const expirationOtp = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
   const hashedPassword: string = await bcrypt.hash(
     payload.password,
     Number(config.bcrypt_salt_rounds)
   );
+
   const result = await prisma.user.create({
-    data: { ...payload, password: hashedPassword },
+    data: {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      role: payload.role as UserRole,
+      password: hashedPassword,
+      otp: otp,
+      expirationOtp: expirationOtp,
+    },
     select: {
       id: true,
       email: true,
@@ -42,17 +58,10 @@ const createUserIntoDb = async (payload: User) => {
       updatedAt: true,
     },
   });
-  const token = jwtHelpers.generateToken(
-    {
-      id: result.id,
-      email: result.email,
-      role: result.role,
-    },
-    config.jwt.jwt_secret as Secret,
-    config.jwt.expires_in as string
-  );
 
-  return { result, token };
+  const html = generateOtpEmail(otp);
+  await emailSender(payload.email, html, 'OTP Verification');
+  return { result, message: "An OTP has been sent to your email. Please verify your account." };
 };
 
 // reterive all users from the database also searcing anf filetering

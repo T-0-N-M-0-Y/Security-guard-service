@@ -41,7 +41,7 @@ model SecurityProfile {
   phoneNumber         String
   address             String
   govtId              String
-  securityCertificate String
+  securityCertificate String?
   dateOfBirth         DateTime
   about               String
   rating              Float                 @default(0.0)

@@ -8,6 +8,7 @@ import emailSender from "../../../shared/emailSender";
 import { UserStatus } from "@prisma/client";
 import httpStatus from "http-status";
 import crypto from 'crypto';
+import { generateOtpEmail, resendOtpEmail } from "../../../shared/emailHTML";
 
 // user login
 const loginUser = async (payload: { email: string; password: string }) => {
@@ -31,7 +32,6 @@ const loginUser = async (payload: { email: string; password: string }) => {
     );
   }
 
-  
   if (userData.role === 'SECURITY') {
     const profile = await prisma.securityProfile.findUnique({ where: { userId: userData.id } });
     if (!profile?.approved) throw new Error('Security profile not approved by admin');
@@ -45,6 +45,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
   if (!isCorrectPassword) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Password incorrect!");
   }
+  
   const accessToken = jwtHelpers.generateToken(
     {
       id: userData.id,
@@ -56,28 +57,6 @@ const loginUser = async (payload: { email: string; password: string }) => {
   );
 
   return { token: accessToken };
-};
-
-// get all user profile
-const getMyProfile = async (userToken: string) => {
-  const decodedToken = jwtHelpers.verifyToken(
-    userToken,
-    config.jwt.jwt_secret!
-  );
-  const userProfile = await prisma.user.findUnique({
-    where: {
-      id: decodedToken.id,
-    },
-    select: {
-      id: true,
-      email: true,
-      profileImage: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
-
-  return userProfile;
 };
 
 // Verify user via verification code
@@ -137,15 +116,7 @@ const resendVerificationCode = async (email: string) => {
   const otp = Number(crypto.randomInt(1000, 9999));
   const expirationOtp = new Date(Date.now() + 10 * 60 * 1000);
 
-  const html = `
-  <div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
-      <h2 style="color: #3f51b5; font-size: 24px; text-align: center;">Resend Verification Code</h2>
-      <p style="font-size: 16px; text-align: center;">Here is your new OTP code:</p>
-      <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center;">${otp}</p>
-      <p style="font-size: 14px; text-align: center; color: #777;">This OTP will expire in 10 minutes.</p>
-    </div>
-  </div>`;
+  const html = resendOtpEmail(otp);
 
   await emailSender(user.email, html, 'Resend Verification OTP');
 
@@ -192,7 +163,39 @@ const verifyEmailOtp = async (payload: { email: string; otp: number }) => {
     },
   });
 
-  return { message: 'Email verified successfully' };
+  const accessToken = jwtHelpers.generateToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.jwt_secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  return { token: accessToken, message: 'Email verified successfully' };
+};
+
+// get all user profile
+const getMyProfile = async (userToken: string) => {
+  const decodedToken = jwtHelpers.verifyToken(
+    userToken,
+    config.jwt.jwt_secret!
+  );
+  const userProfile = await prisma.user.findUnique({
+    where: {
+      id: decodedToken.id,
+    },
+    select: {
+      id: true,
+      email: true,
+      profileImage: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return userProfile;
 };
 
 // change password
@@ -248,35 +251,7 @@ const forgotPassword = async (payload: { email: string }) => {
   const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
   // Create the email content
-  const html = `
-<div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
-        <h2 style="color: #ffffff; font-size: 28px; text-align: center; margin-bottom: 20px;">
-            <span style="color: #ffeb3b;">Forgot Password OTP</span>
-        </h2>
-        <p style="font-size: 16px; color: #333; line-height: 1.5; text-align: center;">
-            Your forgot password OTP code is below.
-        </p>
-        <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center; margin: 20px 0;">
-            ${otp}
-        </p>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <p style="font-size: 14px; color: #555; margin-bottom: 10px;">
-                This OTP will expire in <strong>10 minutes</strong>. If you did not request this, please ignore this email.
-            </p>
-            <p style="font-size: 14px; color: #555; margin-bottom: 10px;">
-                If you need assistance, feel free to contact us.
-            </p>
-        </div>
-        <div style="text-align: center; margin-top: 30px;">
-            <p style="font-size: 12px; color: #999; text-align: center;">
-                Best Regards,<br/>
-                <span style="font-weight: bold; color: #3f51b5;">Nmbull Team</span><br/>
-                <a href="mailto:support@nmbull.com" style="color: #ffffff; text-decoration: none; font-weight: bold;">Contact Support</a>
-            </p>
-        </div>
-    </div>
-</div> `;
+  const html = generateOtpEmail(otp);
 
   // Send the OTP email to the user
   await emailSender(userData.email, html, 'Forgot Password OTP');
@@ -310,36 +285,7 @@ const resendOtp = async (email: string) => {
   const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
   // Create email content
-  const html = `
-    <div style="font-family: Arial, sans-serif; color: #333; padding: 30px; background: linear-gradient(135deg, #6c63ff, #3f51b5); border-radius: 8px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px;">
-            <h2 style="color: #ffffff; font-size: 28px; text-align: center; margin-bottom: 20px;">
-                <span style="color: #ffeb3b;">Resend OTP</span>
-            </h2>
-            <p style="font-size: 16px; color: #333; line-height: 1.5; text-align: center;">
-                Here is your new OTP code to complete the process.
-            </p>
-            <p style="font-size: 32px; font-weight: bold; color: #ff4081; text-align: center; margin: 20px 0;">
-                ${otp}
-            </p>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <p style="font-size: 14px; color: #555; margin-bottom: 10px;">
-                    This OTP will expire in <strong>5 minutes</strong>. If you did not request this, please ignore this email.
-                </p>
-                <p style="font-size: 14px; color: #555; margin-bottom: 10px;">
-                    If you need further assistance, feel free to contact us.
-                </p>
-            </div>
-            <div style="text-align: center; margin-top: 30px;">
-                <p style="font-size: 12px; color: #999; text-align: center;">
-                    Best Regards,<br/>
-                    <span style="font-weight: bold; color: #3f51b5;">levimusuc@team.com</span><br/>
-                    <a href="mailto:support@booksy.buzz.com" style="color: #ffffff; text-decoration: none; font-weight: bold;">Contact Support</a>
-                </p>
-            </div>
-        </div>
-    </div>
-  `;
+  const html = resendOtpEmail(otp);
 
   // Send the OTP to user's email
   await emailSender(user.email, html, 'Resend OTP');

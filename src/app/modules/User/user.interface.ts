@@ -7,6 +7,7 @@ export interface IUser {
   lastName: string;
   password: string;
   role: UserRole;
+  otp: number;
   profession:string;
   promoCode:string;
   status: UserStatus;

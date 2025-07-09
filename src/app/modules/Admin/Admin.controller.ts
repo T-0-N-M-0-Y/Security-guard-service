@@ -4,8 +4,8 @@ import sendResponse from '../../../shared/sendResponse';
 import httpStatus from 'http-status';
 
 const approveSecurity = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const result = await AdminService.approveSecurity(id);
+  const userId = req.params.userId;
+  const result = await AdminService.approveSecurity(userId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

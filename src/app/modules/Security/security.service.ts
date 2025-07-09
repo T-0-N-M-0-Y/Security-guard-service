@@ -6,36 +6,44 @@ import { fileUploader } from "../../../helpars/fileUploader";
 
 
 const submitVerification = async (req: Request) => {
-  const user = req.user as { id: string }; // assuming attached by auth middleware
-  const payload = req.body;
-  const file = req.file as Express.Multer.File; // assuming single file upload
+  const userId = req.user.id // assuming attached by auth middleware
+  const payload = req.body.data;
+  const file = req.file // assuming single file upload
+  console.log("File:", file);
+  let uploaded;
+  let parseData;
 
-  // Validate
-  if (!file) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Certificate file is required");
+if(payload) {
+    parseData = JSON.parse(payload);
   }
 
-  const existing = await prisma.securityProfile.findUnique({ where: { userId: user.id } });
-  if (existing) throw new ApiError(httpStatus.BAD_REQUEST, "Verification already submitted");
+  console.log("Parsed Data:", parseData);
 
-  const existingUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!existingUser || existingUser.role !== "SECURITY") {
+  const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!existingUser ) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid security user");
   }
+  const existing = await prisma.securityProfile.findFirst({ where: { 
+    userId: existingUser.id } });
+  if (existing) throw new ApiError(httpStatus.BAD_REQUEST, "Verification already submitted");
+
 
   // Upload certificate to DigitalOcean
-  const uploaded = await fileUploader.uploadToDigitalOcean(file); // returns { Location: string }
-
+ if (file) {
+   const res = await fileUploader.uploadToDigitalOcean(file)
+   uploaded = res.Location
+   console.log("Uploaded Certificate URL:", uploaded);
+ }
   // Create the security profile
   const data = {
-    userId: user.id,
-    phoneNumber: payload.phoneNumber,
-    address: payload.permanentAddress,
-    govtId: payload.govtId,
-    securityCertificate: uploaded.Location,
-    dateOfBirth: new Date(payload.dateOfBirth),
-    about: payload.about,
-    hourlyRate: Number(payload.hourlyRate),
+    userId: userId,
+    phoneNumber: parseData.phoneNumber,
+    address: parseData.permanentAddress,
+    govtId: parseData.govtId,
+    securityCertificate: uploaded,
+    dateOfBirth: new Date(parseData.dateOfBirth),
+    about: parseData.about,
+    hourlyRate: Number(parseData.hourlyRate),
   };
 
   const profile = await prisma.securityProfile.create({ data });
