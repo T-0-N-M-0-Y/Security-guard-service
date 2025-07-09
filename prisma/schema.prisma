@@ -70,7 +70,6 @@ model Booking {
   appointmentAt     DateTime
   pickupTime        String
   serviceHours      Int
-  ratePerHour       Int
   status            BookingStatus @default(PENDING)
   totalBill         Float
   createdAt         DateTime      @default(now())
