@@ -4,8 +4,9 @@ import httpStatus from 'http-status';
 import { SecurityService } from './security.service';
 import pick from '../../../shared/pick';
 import { userFilterableFields } from '../User/user.costant';
+import catchAsync from '../../../shared/catchAsync';
 
-const submitVerification = async (req: Request, res: Response) => {
+const submitVerification = catchAsync(async (req: Request, res: Response) => {
   const result = await SecurityService.submitVerification(req);
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -13,9 +14,9 @@ const submitVerification = async (req: Request, res: Response) => {
     message: "Profile verification submitted successfully!",
     data: result,
   });
-}
+})
 
-const getAllSecurityProfiles = async (req: Request, res: Response) => {
+const getAllSecurityProfiles = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, userFilterableFields);
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
   const result = await SecurityService.getAllSecurityProfiles(filters, options);
@@ -25,9 +26,9 @@ const getAllSecurityProfiles = async (req: Request, res: Response) => {
     message: "'Security profiles fetched'!",
     data: result,
   });
-}
+})
 
-const getSingleSecurityProfile = async (req: Request, res: Response) => {
+const getSingleSecurityProfile = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await SecurityService.getSingleSecurityProfile(id);
   sendResponse(res, {
@@ -36,7 +37,7 @@ const getSingleSecurityProfile = async (req: Request, res: Response) => {
     message: "'Security profile fetched'!",
     data: result,
   });
-}
+})
 
 export const SecurityController = {
   submitVerification,
