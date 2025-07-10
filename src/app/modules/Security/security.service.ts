@@ -89,17 +89,6 @@ const getAllSecurityProfiles = async (params: ISecurityFilterRequest,
     });
   }
 
-  if (filterData.ratingGroup) {
-    const group = Number(filterData.ratingGroup);
-    andCondions.push({
-      rating: {
-        gte: group,
-        lt: group + 1,
-      },
-    });
-    delete (filterData as any).ratingGroup;
-  }
-
   const whereConditons: Prisma.SecurityProfileWhereInput = { AND: andCondions };
 
   const result = await prisma.securityProfile.findMany({
@@ -118,7 +107,6 @@ const getAllSecurityProfiles = async (params: ISecurityFilterRequest,
       phoneNumber: true,
       address: true,
       govtId: true,
-      rating: true,
       hourlyRate: true,
       status: true,
       approved: true,
