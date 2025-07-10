@@ -1,11 +1,11 @@
-import { SecurityProfile } from './../../../../node_modules/.prisma/client/index.d';
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 import { BookingStatus } from "@prisma/client";
-import { log } from "console";
-import { get } from 'http';
 
+// Create a new booking in the database
+// This function handles the creation of a booking, including validation and conflict checks.
+// It takes the userId and payload as parameters, where payload contains booking details.
 const createBookingIntoDb = async (userId: string, payload: any) => {
   const {
     SecurityProfileId,
@@ -16,8 +16,6 @@ const createBookingIntoDb = async (userId: string, payload: any) => {
     serviceHours,
     bookingNotes,
   } = payload;
-  // console.log('Incoming booking payload:', payload);
-  console.log(await prisma.securityProfile.findMany());
 
   const securityProfile = await prisma.securityProfile.findUnique({ where: { id: SecurityProfileId } });
   console.log('Security Profile found:', SecurityProfileId);
@@ -59,7 +57,6 @@ const createBookingIntoDb = async (userId: string, payload: any) => {
   const hourlyRate = securityProfile.hourlyRate || 0;
   const totalPrice = hourlyRate * serviceHours;
 
-  // Create the booking with basic info, no payment yet
   return prisma.booking.create({
     data: {
       userId,
@@ -78,6 +75,7 @@ const createBookingIntoDb = async (userId: string, payload: any) => {
   });
 }
 
+// Get all bookings for a user
 const getMyBookings = async (userId: string) => {
   return prisma.booking.findMany({
     where: { userId },
@@ -89,6 +87,7 @@ const getMyBookings = async (userId: string) => {
   });
 }
 
+// Get a single booking by ID
 const getSingleBooking = async (bookingId: string) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -107,6 +106,7 @@ const getSingleBooking = async (bookingId: string) => {
   return booking;
 };
 
+//confirm status of bookingnotes
 const confirmPlaceOrder = async (bookingId: string, userId: string, bookingNotes: string) => {
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   if (!booking || booking.userId !== userId) throw new ApiError(400, 'Unauthorized or invalid booking');
