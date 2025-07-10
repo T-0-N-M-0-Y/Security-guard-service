@@ -3,6 +3,7 @@ import { userRoutes } from "../modules/User/user.route";
 import { AuthRoutes } from "../modules/Auth/auth.routes";
 import { AdminRoutes } from "../modules/Admin/Admin.routes";
 import { SecurityRoutes } from "../modules/security/security.routes";
+import { BookingRoutes } from "../modules/Booking/Booking.routes";
 
 
 
@@ -21,9 +22,13 @@ const moduleRoutes = [
     path: "/security",
     route: SecurityRoutes,
   },
-    {
+  {
     path: "/admin",
     route: AdminRoutes,
+  },
+    {
+    path: "/booking",
+    route: BookingRoutes,
   },
 ];
 

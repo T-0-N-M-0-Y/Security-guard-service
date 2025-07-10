@@ -44,7 +44,6 @@ model SecurityProfile {
   securityCertificate String?
   dateOfBirth         DateTime
   about               String
-  rating              Float                 @default(0.0)
   hourlyRate          Float
   partTimeOrFullTime  String
   status              SecurityProfileStatus @default(PENDING)
@@ -59,6 +58,8 @@ model SecurityProfile {
   reviews       Review[]
   messages      Message[]
   GuardBookmark GuardBookmark[]
+
+  @@map("securityProfile")
 }
 
 model Booking {
@@ -68,18 +69,20 @@ model Booking {
   pickup            String
   dropoff           String
   appointmentAt     DateTime
-  pickupTime        String
+  pickupTime        DateTime
   serviceHours      Int
+  serviceEndTime    DateTime
   totalBill         Float
-  status            BookingStatus @default(CONFIRMED)
+  bookingNotes      String?
+  status            BookingStatus @default(PENDING)
   paymentStatus     PaymentStatus @default(PENDING)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   user            User            @relation(fields: [userId], references: [id])
   SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
-  review          Review?         @relation(fields: [reviewId], references: [id])
-  reviewId        String?         @db.ObjectId
+
+  @@map("booking")
 }
 
 model GuardBookmark {
@@ -91,6 +94,8 @@ model GuardBookmark {
 
   user     User            @relation(fields: [userId], references: [id])
   security SecurityProfile @relation(fields: [securityId], references: [id])
+
+  @@map("guardBookmark")
 }
 
 model Review {
@@ -104,7 +109,8 @@ model Review {
 
   user            User            @relation(fields: [userId], references: [id])
   SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
-  Booking         Booking[]
+
+  @@map("review")
 }
 
 model Message {
@@ -119,6 +125,8 @@ model Message {
   userId            String?          @db.ObjectId
   SecurityProfile   SecurityProfile? @relation(fields: [SecurityProfileId], references: [id])
   SecurityProfileId String?          @db.ObjectId
+
+  @@map("message")
 }
 
 enum UserRole {
@@ -140,6 +148,7 @@ enum SecurityProfileStatus {
 }
 
 enum BookingStatus {
+  PENDING
   CONFIRMED
   ON_THE_WAY
   ARRIVED
