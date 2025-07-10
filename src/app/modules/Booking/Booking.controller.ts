@@ -41,6 +41,7 @@ const getSingleBooking = catchAsync(async (req: Request, res: Response) => {
 const confirmBooking = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
   const { bookingId } = req.params;
+  console.log('Booking ID:', bookingId);
   const { bookingNotes } = req.body;
   const result = await BookingService.confirmPlaceOrder(bookingId, userId, bookingNotes);
   sendResponse(res, {

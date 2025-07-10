@@ -16,7 +16,7 @@ router.get('/my-bookings', auth(), BookingController.getMyBookings);
 router.get('/my-booking/:id', auth(), BookingController.getMyBookings);
 
 router.put(
-'/confirm-booking',
+'/confirm-booking/:bookingId',
 auth(UserRole.USER),
 BookingController.confirmBooking,
 );
