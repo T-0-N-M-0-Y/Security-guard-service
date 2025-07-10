@@ -108,15 +108,8 @@ const getSingleBooking = async (bookingId: string) => {
 };
 
 const confirmPlaceOrder = async (bookingId: string, userId: string, bookingNotes: string) => {
-  console.log(await prisma.booking.findMany());
-  console.log('Booking Id:', bookingId);
-  console.log('userId:', userId);
-
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
-
-
   if (!booking || booking.userId !== userId) throw new ApiError(400, 'Unauthorized or invalid booking');
-
   return prisma.booking.update({
     where: { id: bookingId },
     data: {
