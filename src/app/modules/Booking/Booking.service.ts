@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus } from "@prisma/client";
 
 // Create a new booking in the database
 // This function handles the creation of a booking, including validation and conflict checks.
@@ -106,7 +106,7 @@ const getSingleBooking = async (bookingId: string) => {
   return booking;
 };
 
-//confirm status of bookingnotes
+//confirm status of booking after giving bookingnotes
 const confirmPlaceOrder = async (bookingId: string, userId: string, bookingNotes: string) => {
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   if (!booking || booking.userId !== userId) throw new ApiError(400, 'Unauthorized or invalid booking');
@@ -119,10 +119,21 @@ const confirmPlaceOrder = async (bookingId: string, userId: string, bookingNotes
   });
 }
 
+//Stripe will call this after successful payment
+const markPaymentSuccess = async (bookingId: string) => {
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      paymentStatus: PaymentStatus.PAID,
+    },
+  });
+}
+
 
 export const BookingService = {
   createBookingIntoDb,
   getMyBookings,
   getSingleBooking,
-  confirmPlaceOrder
+  confirmPlaceOrder,
+  markPaymentSuccess
 };

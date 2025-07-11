@@ -52,9 +52,21 @@ const confirmBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const markPaymentSuccess = catchAsync(async (req: Request, res: Response) => {
+  const { bookingId } = req.params;
+  const result = await BookingService.markPaymentSuccess(bookingId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Payment confirmed successfully',
+    data: result,
+  });
+})
+
 export const BookingController = {
   createBooking,
   getMyBookings,
   getSingleBooking,
-  confirmBooking
+  confirmBooking,
+  markPaymentSuccess
 };
