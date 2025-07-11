@@ -155,6 +155,7 @@ enum BookingStatus {
   CONFIRMED
   ON_THE_WAY
   ARRIVED
+  MARK_AS_COMPLETE
   COMPLETED
 }
 

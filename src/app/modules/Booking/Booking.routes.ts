@@ -25,9 +25,17 @@ router.patch(
     BookingController.confirmBooking,
 );
 
+//STRIPE: Mark booking as paid (this would ideally be called by webhook)
 router.patch(
     '/payment-success/:bookingId', auth(UserRole.USER),
     BookingController.markPaymentSuccess
+);
+
+// Security: Status updates → on-the-way, arrived, complete
+router.patch(
+    '/update-status/:bookingId',
+    auth(UserRole.SECURITY),
+    BookingController.updateBookingStatusBySecurity
 );
 
 export const BookingRoutes = router;

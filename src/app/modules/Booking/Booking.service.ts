@@ -129,11 +129,25 @@ const markPaymentSuccess = async (bookingId: string) => {
   });
 }
 
+//Security updates Booking status
+const updateBookingStatusBySecurity = async (bookingId: string, SecurityProfileId: string, status: BookingStatus) => {
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  console.log(booking);
+  console.log("Security ID:", SecurityProfileId);
+  
+  if (!booking || booking.SecurityProfileId !== booking.SecurityProfileId) throw new ApiError(400, 'Booking not found');
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status },
+  });
+}
 
 export const BookingService = {
   createBookingIntoDb,
   getMyBookings,
   getSingleBooking,
   confirmPlaceOrder,
-  markPaymentSuccess
+  markPaymentSuccess,
+  updateBookingStatusBySecurity
 };

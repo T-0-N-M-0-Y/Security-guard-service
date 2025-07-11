@@ -63,10 +63,25 @@ const markPaymentSuccess = catchAsync(async (req: Request, res: Response) => {
   });
 })
 
+const updateBookingStatusBySecurity = catchAsync(async (req: Request, res: Response) => {
+  const SecurityProfileId = req.user?.id;
+  const { bookingId } = req.params;
+  const { status } = req.body;
+
+  const result = await BookingService.updateBookingStatusBySecurity(bookingId, SecurityProfileId, status);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Status updated to ${status}`,
+    data: result,
+  });
+})
+
 export const BookingController = {
   createBooking,
   getMyBookings,
   getSingleBooking,
   confirmBooking,
-  markPaymentSuccess
+  markPaymentSuccess,
+  updateBookingStatusBySecurity
 };
