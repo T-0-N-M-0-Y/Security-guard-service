@@ -31,7 +31,7 @@ router.patch(
     BookingController.markPaymentSuccess
 );
 
-// Security: Status updates → on-the-way, arrived, complete
+// Security: Status updates → on-the-way, arrived, Mark as complete
 router.patch(
     '/update-status/:bookingId',
     auth(UserRole.SECURITY),

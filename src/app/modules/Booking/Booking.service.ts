@@ -133,7 +133,7 @@ const markPaymentSuccess = async (bookingId: string) => {
 const updateBookingStatusBySecurity = async (bookingId: string, SecurityProfileId: string, status: BookingStatus) => {
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   console.log(booking);
-  console.log("Security ID:", SecurityProfileId);
+  console.log("Security Profile ID:", SecurityProfileId);
   
   if (!booking || booking.SecurityProfileId !== booking.SecurityProfileId) throw new ApiError(400, 'Booking not found');
 
