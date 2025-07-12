@@ -28,11 +28,11 @@ model User {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  SecurityProfile SecurityProfile?
-  bookings        Booking[]
-  GuardBookmark   GuardBookmark[]
-  messages        Message[]
-  reviews         Review[]
+  SecurityProfile  SecurityProfile?
+  bookings         Booking[]
+  SecurityBookmark SecurityBookmark[]
+  messages         Message[]
+  reviews          Review[]
 
   @@map("users")
 }
@@ -55,11 +55,11 @@ model SecurityProfile {
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 
-  user          User            @relation(fields: [userId], references: [id])
-  bookings      Booking[]
-  reviews       Review[]
-  messages      Message[]
-  GuardBookmark GuardBookmark[]
+  user             User               @relation(fields: [userId], references: [id])
+  bookings         Booking[]
+  reviews          Review[]
+  messages         Message[]
+  SecurityBookmark SecurityBookmark[]
 
   @@map("securityProfile")
 }
@@ -89,17 +89,17 @@ model Booking {
   @@map("booking")
 }
 
-model GuardBookmark {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  securityId String   @db.ObjectId
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model SecurityBookmark {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  SecurityProfileId String   @db.ObjectId
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user     User            @relation(fields: [userId], references: [id])
-  security SecurityProfile @relation(fields: [securityId], references: [id])
+  security SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
 
-  @@map("guardBookmark")
+  @@map("SecurityBookmark")
 }
 
 model Review {
