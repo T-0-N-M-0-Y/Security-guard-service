@@ -99,7 +99,7 @@ model SecurityBookmark {
   user     User            @relation(fields: [userId], references: [id])
   security SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
 
-  @@map("SecurityBookmark")
+  @@map("securityBookmark")
 }
 
 model Review {
