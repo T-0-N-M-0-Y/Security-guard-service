@@ -105,10 +105,11 @@ model SecurityBookmark {
 
 model Review {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId         String   @db.ObjectId
   userId            String   @db.ObjectId
   SecurityProfileId String   @db.ObjectId
   rating            Int
-  comment           String
+  comment           String?  @default("")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -116,7 +117,7 @@ model Review {
   SecurityProfile SecurityProfile @relation(fields: [SecurityProfileId], references: [id])
   Booking         Booking[]
 
-  @@map("review")
+  @@map("reviews")
 }
 
 model Message {
@@ -132,7 +133,7 @@ model Message {
   SecurityProfile   SecurityProfile? @relation(fields: [SecurityProfileId], references: [id])
   SecurityProfileId String?          @db.ObjectId
 
-  @@map("message")
+  @@map("messages")
 }
 
 enum UserRole {
