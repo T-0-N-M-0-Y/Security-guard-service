@@ -38,4 +38,11 @@ router.patch(
     BookingController.updateBookingStatusBySecurity
 );
 
+// USER: Approve service after completion
+router.patch(
+  '/approve-service/:bookingId',
+  auth(UserRole.USER),
+  BookingController.approveServicebyUser
+);
+
 export const BookingRoutes = router;

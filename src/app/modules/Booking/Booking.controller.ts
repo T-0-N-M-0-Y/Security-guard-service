@@ -77,11 +77,25 @@ const updateBookingStatusBySecurity = catchAsync(async (req: Request, res: Respo
   });
 })
 
+const approveServicebyUser = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { bookingId } = req.params;
+
+  const result = await BookingService.approveServicebyUser(bookingId, userId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Service approved successfully',
+    data: result,
+  });
+})
+
 export const BookingController = {
   createBooking,
   getMyBookings,
   getSingleBooking,
   confirmBooking,
   markPaymentSuccess,
-  updateBookingStatusBySecurity
+  updateBookingStatusBySecurity,
+  approveServicebyUser
 };

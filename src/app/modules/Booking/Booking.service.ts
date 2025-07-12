@@ -134,12 +134,28 @@ const updateBookingStatusBySecurity = async (bookingId: string, SecurityProfileI
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   console.log(booking);
   console.log("Security Profile ID:", SecurityProfileId);
-  
+
   if (!booking || booking.SecurityProfileId !== booking.SecurityProfileId) throw new ApiError(400, 'Booking not found');
 
   return prisma.booking.update({
     where: { id: bookingId },
-    data: { status },
+    data: { status }
+  });
+}
+
+// Final approval by user after service complete
+const approveServicebyUser = async (bookingId: string, userId: string) => {
+  console.log('Approving service for booking ID:', bookingId, 'by user ID:', userId);
+  
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+  console.log('Booking found:', booking);
+  
+  if (!booking || booking.userId !== booking.userId) throw new Error('Unauthorized');
+  if (booking.status !== BookingStatus.MARK_AS_COMPLETE) throw new ApiError(400, 'Not ready to approve');
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.COMPLETED }
   });
 }
 
@@ -149,5 +165,6 @@ export const BookingService = {
   getSingleBooking,
   confirmPlaceOrder,
   markPaymentSuccess,
-  updateBookingStatusBySecurity
+  updateBookingStatusBySecurity,
+  approveServicebyUser
 };
