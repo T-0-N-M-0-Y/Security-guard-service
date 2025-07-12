@@ -45,6 +45,4 @@ router.patch(
     BookingController.approveServicebyUser
 );
 
-
-
 export const BookingRoutes = router;

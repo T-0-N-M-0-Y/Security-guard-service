@@ -15,6 +15,8 @@ model User {
   profileImage      String?
   coverImage        String?
   password          String
+  lat               Float      @default(0.0)
+  lon               Float      @default(0.0)
   expirationOtp     DateTime?
   role              UserRole   @default(USER)
   status            UserStatus @default(PENDING)
