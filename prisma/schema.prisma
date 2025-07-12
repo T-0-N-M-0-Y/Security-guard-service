@@ -14,6 +14,7 @@ model User {
   email             String     @unique
   profileImage      String?
   coverImage        String?
+  mobileNumber      Int?       @unique
   password          String
   lat               Float      @default(0.0)
   lon               Float      @default(0.0)

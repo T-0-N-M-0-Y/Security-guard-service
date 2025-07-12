@@ -166,6 +166,7 @@ const updateProfile = async (req: Request) => {
       lastName: parseData.lastName || existingUser.lastName,
       email: parseData.email || existingUser.email,
       profileImage: image || existingUser.profileImage,
+      mobileNumber: parseData.mobileNumber || existingUser.mobileNumber,
       updatedAt: new Date(),
     },
     select: {
