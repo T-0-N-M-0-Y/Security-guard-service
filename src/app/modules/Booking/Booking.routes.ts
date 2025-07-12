@@ -12,11 +12,11 @@ router.post(
     BookingController.createBooking,
 );
 
-// Get all bookings
-router.get('/my-bookings', auth(), BookingController.getMyBookings);
+// Get my bookings based on role
+router.get("/my-bookings", auth(), BookingController.getmyBookingsByRole);
 
 // Get a single booking by ID
-router.get('/my-bookings/:bookingId', auth(), BookingController.getMyBookings);
+router.get('/my-bookings/:bookingId', auth(), BookingController.getSingleBooking);
 
 // Update a data by bookingId
 router.patch(
@@ -40,9 +40,11 @@ router.patch(
 
 // USER: Approve service after completion
 router.patch(
-  '/approve-service/:bookingId',
-  auth(UserRole.USER),
-  BookingController.approveServicebyUser
+    '/approve-service/:bookingId',
+    auth(UserRole.USER),
+    BookingController.approveServicebyUser
 );
+
+
 
 export const BookingRoutes = router;

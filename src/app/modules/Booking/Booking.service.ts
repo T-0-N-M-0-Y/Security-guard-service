@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus, UserRole } from "@prisma/client";
 
 // Create a new booking in the database
 // This function handles the creation of a booking, including validation and conflict checks.
@@ -75,17 +75,47 @@ const createBookingIntoDb = async (userId: string, payload: any) => {
   });
 }
 
-// Get all bookings for a user
-const getMyBookings = async (userId: string) => {
-  return prisma.booking.findMany({
-    where: { userId },
-    include: {
-      SecurityProfile: {
-        include: { user: true },
+// Get My bookings for a user, Security or admin
+const getmyBookingsByRole = async (userId: string, role: UserRole) => {
+  console.log('Fetching bookings for user ID:', userId, 'with role:', role);
+
+  if (role === "USER") {
+    return await prisma.booking.findMany({
+      where: { userId },
+      include: {
+        SecurityProfile: {
+          include: { user: true }, // security user details
+        },
       },
-    },
-  });
-}
+    });
+  }
+
+  if (role === "SECURITY") {
+    const profile = await prisma.securityProfile.findFirst({
+      where: { userId },
+    });
+    if (!profile) throw new ApiError(404, "Security profile not found");
+    return await prisma.booking.findMany({
+      where: { SecurityProfileId: profile.id },
+      include: {
+        user: true, // booking user
+      },
+    });
+  }
+  
+// Admin can see all bookings
+  if (role === "ADMIN") {
+    return await prisma.booking.findMany({
+      include: {
+        user: true,
+        SecurityProfile: {
+          include: { user: true },
+        },
+      },
+    });
+  }
+  throw new ApiError(403, "Unauthorized role");
+};
 
 // Get a single booking by ID
 const getSingleBooking = async (bookingId: string) => {
@@ -146,10 +176,10 @@ const updateBookingStatusBySecurity = async (bookingId: string, SecurityProfileI
 // Final approval by user after service complete
 const approveServicebyUser = async (bookingId: string, userId: string) => {
   console.log('Approving service for booking ID:', bookingId, 'by user ID:', userId);
-  
+
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
   console.log('Booking found:', booking);
-  
+
   if (!booking || booking.userId !== booking.userId) throw new Error('Unauthorized');
   if (booking.status !== BookingStatus.MARK_AS_COMPLETE) throw new ApiError(400, 'Not ready to approve');
 
@@ -161,7 +191,7 @@ const approveServicebyUser = async (bookingId: string, userId: string) => {
 
 export const BookingService = {
   createBookingIntoDb,
-  getMyBookings,
+  getmyBookingsByRole,
   getSingleBooking,
   confirmPlaceOrder,
   markPaymentSuccess,

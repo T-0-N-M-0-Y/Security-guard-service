@@ -16,16 +16,17 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getMyBookings = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
-  const result = await BookingService.getMyBookings(userId);
+const getmyBookingsByRole = catchAsync(async (req: Request, res: Response) => {
+  const { id, role } = req.user;
+  const result = await BookingService.getmyBookingsByRole(id, role);
+
   sendResponse(res, {
-    statusCode: httpStatus.CREATED,
+    statusCode: httpStatus.OK,
     success: true,
-    message: 'My bookings Found successfully',
+    message: "Bookings retrieved successfully",
     data: result,
   });
-}
+});
 
 const getSingleBooking = catchAsync(async (req: Request, res: Response) => {
   const { bookingId } = req.params;
@@ -92,7 +93,7 @@ const approveServicebyUser = catchAsync(async (req: Request, res: Response) => {
 
 export const BookingController = {
   createBooking,
-  getMyBookings,
+  getmyBookingsByRole,
   getSingleBooking,
   confirmBooking,
   markPaymentSuccess,
