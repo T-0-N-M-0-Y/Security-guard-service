@@ -80,6 +80,7 @@ model Booking {
   bookingNotes      String?
   status            BookingStatus @default(PENDING)
   paymentStatus     PaymentStatus @default(PENDING)
+  isWithdrawn       Boolean       @default(false)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
