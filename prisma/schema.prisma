@@ -75,8 +75,8 @@ model Booking {
   appointmentAt     DateTime
   pickupTime        DateTime
   serviceHours      Int
-  serviceEndTime    DateTime
-  totalBill         Float
+  serviceEndTime    DateTime?
+  totalBill         Float?
   bookingNotes      String?
   status            BookingStatus @default(PENDING)
   paymentStatus     PaymentStatus @default(PENDING)

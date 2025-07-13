@@ -18,7 +18,7 @@ const createBookingIntoDb = async (userId: string, payload: any) => {
   } = payload;
 
   const securityProfile = await prisma.securityProfile.findUnique({ where: { id: SecurityProfileId } });
-  console.log('Security Profile found:', SecurityProfileId);
+  console.log('Security Profile found:', SecurityProfileId, securityProfile);
   if (!securityProfile) throw new ApiError(httpStatus.NOT_FOUND, 'Invalid or unapproved Security Profile');
 
   if (serviceHours < 2 || serviceHours > 10) {
