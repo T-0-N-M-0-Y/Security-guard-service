@@ -1,4 +1,8 @@
+import { Prisma } from "@prisma/client";
+import { paginationHelper } from "../../../helpars/paginationHelper";
+import { IPaginationOptions } from "../../../interfaces/paginations";
 import prisma from "../../../shared/prisma";
+import { userSearchAbleFields } from "../User/user.costant";
 
 const addBookmarkIntoDb = async (userId: string, SecurityProfileId: string) => {
   const existing = await prisma.securityBookmark.findFirst({
@@ -17,17 +21,67 @@ const addBookmarkIntoDb = async (userId: string, SecurityProfileId: string) => {
   });
 }
 
-const getAllBookmarks = async (userId: string) => {
-  return prisma.securityBookmark.findMany({
-    where: { userId },
+const getAllBookmarks = async (
+  userId: string,
+  searchTerm?: string,
+  paginationOptions?: IPaginationOptions
+) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(paginationOptions  || {});
+
+  const andConditions: Prisma.SecurityBookmarkWhereInput[] = [];
+
+  // 🔍 Filter by userId
+  andConditions.push({ userId });
+
+  // 🔍 Apply search term on related user fields
+  if (searchTerm) {
+    andConditions.push({
+      OR: userSearchAbleFields.map(field => ({
+        security: {
+          user: {
+            [field]: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        },
+      })),
+    });
+  }
+
+  const whereConditions: Prisma.SecurityBookmarkWhereInput = {
+    AND: andConditions,
+  };
+
+  const result = await prisma.securityBookmark.findMany({
+    where: whereConditions,
     include: {
       security: {
-        include: { user: true },
+        include: {
+          user: true,
+        },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
-}
+
+  const total = await prisma.securityBookmark.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
+};
 
 
 const removeBookmark = async (userId: string, SecurityProfileId: string) => {

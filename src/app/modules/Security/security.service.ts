@@ -66,7 +66,7 @@ const getAllSecurityProfiles = async (params: ISecurityFilterRequest,
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
   const { searchTerm, ratingFilter, ...filterData } = params;
   console.log("Rating Filter:", ratingFilter);
-  
+
 
   const andConditions: Prisma.SecurityProfileWhereInput[] = [];
 
@@ -91,17 +91,16 @@ const getAllSecurityProfiles = async (params: ISecurityFilterRequest,
     });
   }
 
-    // 🎯 Apply exact rating filters for 4.0, 3.0, 2.0, 1.0
-  if (ratingFilter && ["5.0","4.0", "3.0", "2.0", "1.0"].includes(ratingFilter)) {
+  // 🎯 Apply rating filters for 4.0, 3.0, 2.0, 1.0
+  if (ratingFilter && ["5.0", "4.0", "3.0", "2.0", "1.0"].includes(ratingFilter)) {
     andConditions.push({
       avgRating: {
-       gte: parseFloat(ratingFilter), lte: parseFloat(ratingFilter) + 0.9
+        gte: parseFloat(ratingFilter), lte: parseFloat(ratingFilter) + 0.9
       },
     });
   }
-  console.dir(andConditions, { depth: Infinity });
 
-  const whereConditons: Prisma.SecurityProfileWhereInput = { AND: andConditions};
+  const whereConditons: Prisma.SecurityProfileWhereInput = { AND: andConditions };
 
   const result = await prisma.securityProfile.findMany({
     where: whereConditons,
