@@ -1,6 +1,7 @@
 export const userFilterableFields = [
   "email",
   "searchTerm",
+  "ratingFilter",
   "role",
 
 ];

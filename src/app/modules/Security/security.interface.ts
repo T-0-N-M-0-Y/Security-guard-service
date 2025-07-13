@@ -4,4 +4,5 @@ export type ISecurityFilterRequest = {
   contactNumber?: string | undefined;
   searchTerm?: string | undefined;
   ratingGroup?: string | undefined;
+  ratingFilter?: string | undefined; 
 }
