@@ -5,8 +5,8 @@ import sendResponse from '../../../shared/sendResponse';
 
 
 const getSecurityDashboard = catchAsync(async (req: Request, res: Response) => {
-  const SecurityProfileId = req.user?.id;
-  const result = await DashboardService.getSecurityDashboard(SecurityProfileId);
+  const securityId = req.user?.id;
+  const result = await DashboardService.getSecurityDashboard(securityId);
   sendResponse(res, {
     statusCode: 200,
     success: true,
