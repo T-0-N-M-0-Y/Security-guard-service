@@ -1,7 +1,6 @@
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
-import { log } from "console";
 
 // Function to create a review in the database
 const createReviewIntoDb = async (userId: string, data: any) => {
