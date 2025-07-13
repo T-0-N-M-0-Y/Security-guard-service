@@ -66,12 +66,15 @@ const createReviewIntoDb = async (userId: string, data: any) => {
 // Function to get reviews for a specific security guard
 const getReviewsForSecurityGuard = async (SecurityProfileId: string) => {
   const SecurityGuard = await prisma.securityProfile.findUnique({
-    where: {
-      id: SecurityProfileId,
-    }
+    where: { id: SecurityProfileId },
   });
-  if (!SecurityGuard) throw new ApiError(httpStatus.NOT_FOUND, 'SecurityGuard not found');
-  return prisma.review.findMany({
+
+  if (!SecurityGuard) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Security guard not found');
+  }
+
+  // Get all reviews with user info
+  const reviews = await prisma.review.findMany({
     where: {
       SecurityProfileId
     },
@@ -87,6 +90,34 @@ const getReviewsForSecurityGuard = async (SecurityProfileId: string) => {
     },
     orderBy: { createdAt: 'desc' },
   });
+
+  const totalReviews = reviews.length;
+
+  // Count and calculate percentage for each star rating (1-5)
+  const ratingSummary = await Promise.all(
+    [1, 2, 3, 4, 5].map(async (star) => {
+      const count = await prisma.review.count({
+        where: {
+          SecurityProfileId,
+          rating: star,
+        },
+      });
+
+      const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+
+      return {
+        rating: star,
+        count,
+        percentage: parseFloat(percentage.toFixed(2)), // Rounded to 2 decimal places
+      };
+    })
+  );
+
+  return {
+    totalReviews,
+    ratingSummary,
+    reviews,
+  };
 };
 
 export const reviewService = {
