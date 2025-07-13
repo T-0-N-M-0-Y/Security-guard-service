@@ -49,6 +49,7 @@ model SecurityProfile {
   about               String
   hourlyRate          Float
   partTimeOrFullTime  String
+  avgRating           Float                 @default(0.0)
   status              SecurityProfileStatus @default(PENDING)
   approved            Boolean               @default(false)
   isVerified          Boolean               @default(false)

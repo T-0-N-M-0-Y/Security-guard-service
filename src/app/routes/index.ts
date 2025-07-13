@@ -5,6 +5,7 @@ import { AdminRoutes } from "../modules/Admin/Admin.routes";
 import { SecurityRoutes } from "../modules/security/security.routes";
 import { BookingRoutes } from "../modules/Booking/Booking.routes";
 import { SecurityBookmarkRoutes } from "../modules/SecurityBookmark/SecurityBookmark.routes";
+import { reviewRoutes } from "../modules/review/review.routes";
 
 
 
@@ -34,6 +35,10 @@ const moduleRoutes = [
   {
     path: "/bookmark",
     route: SecurityBookmarkRoutes,
+  },
+    {
+    path: "/review",
+    route: reviewRoutes,
   },
 ];
 
